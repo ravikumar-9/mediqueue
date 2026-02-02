@@ -61,26 +61,32 @@ export const Login = async (req: Request, res: Response) => {
         .status(400)
         .json({ status: false, message: schemaValidate?.error?.issues });
     }
+
     const { email, password } = req.body;
+
     const isUserExist = await db
       .select()
       .from(users)
       .where(eq(users?.email, email));
     if (isUserExist?.length > 0) {
+
       const isPasswordCorrect =await comparePassword(
         password,
         isUserExist[0]?.password
       );
+
       if (!isPasswordCorrect) {
         return res
           .status(400)
           .json({ status: false, message: "Invalid credentials" });
       }
+
       const token = jwt.sign(
         { id: isUserExist[0]?.id, role: isUserExist[0]?.role },
         "kdsajfisdfisdkjfnmdsjfid",
         { expiresIn: "1h" }
       );
+      
       return res
         .status(200)
         .json({ status: true, message: "login successfull", data: { token } });
