@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "isDeactivated" boolean DEFAULT false;

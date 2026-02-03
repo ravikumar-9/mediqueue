@@ -11,7 +11,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { CheckCircle, User } from "lucide-react";
+import { CheckCircle, CirclePlus, User } from "lucide-react";
+import Link from "next/link";
 
 interface Admin {
   id: string;
@@ -45,10 +46,18 @@ export default function AdminsList() {
   return (
     <div className="mx-auto space-y-6">
       {/* ================= METRIC CARDS ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <MetricCard label="Total Doctors" value={15} Icon={User} />
 
         <MetricCard label="Active Admins" value={13} Icon={CheckCircle} />
+      </div>
+      <Link href="/superadmin/admins/create">
+        <Button variant="primary">
+          <CirclePlus/>
+         Add Doctor
+        </Button>
+      </Link>
       </div>
 
       {/* ================= ADMINS TABLE ================= */}

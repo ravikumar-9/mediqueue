@@ -8,7 +8,7 @@ const ProtectedLayout = ({children,title,subtitle}:{children:React.ReactNode,tit
     <>
     <AppSidebar />
       <main className="w-full">
-        <header className='bg-primary/10 border-b shadow px-2 py-3 sticky top-0 backdrop-blur z-40'>
+        <header className='bg-primary/10 border-b shadow px-2 py-3 sticky top-0 backdrop-blur z-40 w-full'>
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-3'>
           <SidebarTrigger/>

@@ -41,6 +41,7 @@ export default function LoginPage() {
       const result = await loginService(values);
       if (result?.data?.status === true) {
         toast.success(result?.data?.message);
+        localStorage.setItem("token",result?.data?.data?.token);
       } else {
         toast.error(result?.data?.message);
       }

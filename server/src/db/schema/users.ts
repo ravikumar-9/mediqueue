@@ -4,6 +4,7 @@ import {
   varchar,
   timestamp,
   date,
+  boolean
 } from "drizzle-orm/pg-core"
 
 /* ================= USERS TABLE ================= */
@@ -31,6 +32,8 @@ export const users = pgTable("users", {
     .notNull(),
 
   dateOfBirth: date("date_of_birth").notNull(),
+
+  isDeactivated:boolean("isDeactivated").default(false),
 
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()

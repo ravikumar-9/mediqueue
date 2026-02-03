@@ -39,7 +39,6 @@ export const Register = async (req: Request, res: Response) => {
         phone,
       })
       .returning();
-    console.log(queryResult);
     if (queryResult[0]) {
       return res.status(200).json({
         status: true,
