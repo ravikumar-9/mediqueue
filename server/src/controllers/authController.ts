@@ -4,7 +4,8 @@ import { users } from "../db/schema/users.js";
 import { eq } from "drizzle-orm";
 import { loginSchema, registerSchema } from "../schemas/auth.schema.js";
 import { comparePassword, hashPassword } from "../utils/hash.js";
-import jwt from "jsonwebtoken";
+import { generateAccessToken } from "../utils/jwt.js";
+import { userProfiles } from "../db/schema/userProfiles.js";
 
 export const Register = async (req: Request, res: Response) => {
   try {
@@ -26,26 +27,37 @@ export const Register = async (req: Request, res: Response) => {
         .status(400)
         .json({ message: "User already exists with this email." });
     }
-    const hashedPassword=await hashPassword(password)
-    const queryResult = await db
-      .insert(users)
-      .values({
-        firstName,
-        lastName,
-        email,
-        password:hashedPassword,
-        gender,
-        dateOfBirth,
-        phone,
-      })
-      .returning();
-    if (queryResult[0]) {
-      return res.status(200).json({
-        status: true,
-        data: queryResult[0],
-        message: "User registered successfully.",
-      });
-    }
+    const hashedPassword = await hashPassword(password);
+    const queryResult = await db.transaction(async (tx) => {
+      const [newUser] = await tx
+        .insert(users)
+        .values({ email, password: hashedPassword, role: "user" })
+        .returning({ id: users?.id, email: users?.email, role: users?.role });
+      if (!newUser?.id) {
+        return res
+          .status(400)
+          .json({
+            status: false,
+            message: "An error occured while registering",
+          });
+      }
+      await tx
+        .insert(userProfiles)
+        .values({
+          firstName,
+          lastName,
+          userId: newUser?.id,
+          gender,
+          phone,
+          dateOfBirth,
+        });
+      return newUser;
+    });
+
+    return res.status(201).json({
+      message: "User registered successfully",
+      data: { user: queryResult },
+    });
   } catch (error) {
     console.log(error);
     res.json({ statusCode: 500 });
@@ -67,9 +79,9 @@ export const Login = async (req: Request, res: Response) => {
       .select()
       .from(users)
       .where(eq(users?.email, email));
-    if (isUserExist?.length > 0) {
 
-      const isPasswordCorrect =await comparePassword(
+    if (isUserExist?.length > 0 && isUserExist[0]?.password) {
+      const isPasswordCorrect = await comparePassword(
         password,
         isUserExist[0]?.password
       );
@@ -80,21 +92,30 @@ export const Login = async (req: Request, res: Response) => {
           .json({ status: false, message: "Invalid credentials" });
       }
 
-      const token = jwt.sign(
-        { id: isUserExist[0]?.id, role: isUserExist[0]?.role },
-        "kdsajfisdfisdkjfnmdsjfid",
-        { expiresIn: "1h" }
-      );
-      
-      return res
-        .status(200)
-        .json({ status: true, message: "login successfull", data: { token } });
+      const token = generateAccessToken({
+        id: isUserExist[0]?.id,
+        role: isUserExist[0]?.role,
+      });
+
+      res.cookie("access_token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+        maxAge: 15 * 60 * 1000,
+      });
+
+      return res.status(200).json({
+        status: true,
+        message: "login successfull",
+        data: { role: isUserExist[0]?.role },
+      });
     } else {
       return res
         .status(400)
         .json({ status: false, message: "Invalid credentials" });
     }
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ message: "An error occured while login." });
   }
 };

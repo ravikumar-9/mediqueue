@@ -1,26 +1,29 @@
 import type { Request, Response } from "express";
 import { users } from "../db/schema/users.js";
 import { db } from "../config/db.js";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, ne, or } from "drizzle-orm";
+import { userProfiles } from "../db/schema/userProfiles.js";
 
 //get all users
 export const getAllUsers = async (req: Request, res: Response) => {
   const { skip, limit } = req.body;
+
   try {
     const usersList = await db
       .select({
-        id: users?.id,
-        firstName: users?.firstName,
-        lastName: users?.lastName,
+        id: userProfiles?.userId,
+        firstName: userProfiles?.firstName,
+        lastName: userProfiles?.lastName,
         email: users?.email,
-        phone: users?.phone,
+        phone: userProfiles?.phone,
         isDeactivated: users?.isDeactivated,
         createdAt: users?.createdAt,
       })
-      .from(users)
+      .from(users).leftJoin(userProfiles,eq(users?.id,userProfiles?.userId)).where(and(ne(users?.role,"superadmin"),ne(users?.role,"doctor")))
       .offset(skip ?? 0)
       .limit(limit ?? 10)
       .orderBy(desc(users?.createdAt));
+
     res.status(200).json({
       message: "users feched successfully",
       data: usersList,
@@ -43,7 +46,7 @@ export const deactivateUser = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(400).json({ message: "User not found." });
     }
-    const result = await db
+    await db
       .update(users)
       .set({ isDeactivated: !user[0]?.isDeactivated })
       .where(eq(users?.id, id))

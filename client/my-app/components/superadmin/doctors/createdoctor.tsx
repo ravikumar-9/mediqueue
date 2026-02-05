@@ -19,60 +19,97 @@ import {
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { apiErrorHandler } from "@/lib/handlers";
+import { createDoctorService } from "@/services/doctorservice";
+import { toast } from "react-toastify";
 
+const DAYS = [
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+] as const;
 
 export function CreateDoctorForm() {
   const form = useForm<CreateDoctorFormValues>({
     resolver: zodResolver(createDoctorSchema),
     defaultValues: {
-      name: "",
+      firstName: "",
+      lastName: "",
       email: "",
       phone: "",
       specialization: "",
-      experience: 1,
-      slots: [{ start: "", end: "" }],
+      experience: "1",
+      availability: [{ day: "Monday", startTime: "", endTime: "" }],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
-    name: "slots",
+    name: "availability",
     control: form.control,
   });
 
-  const onSubmit = (values: CreateDoctorFormValues) => {
-    console.log("Doctor Data:", values);
+  const onSubmit = async (values: CreateDoctorFormValues) => {
+    try {
+      const response = await createDoctorService(values);
+      toast.success(response?.data?.message);
+    } catch (error) {
+      console.log(error);
+      apiErrorHandler(error);
+    }
   };
 
   return (
     <div className="max-w-5xl mx-auto py-10 space-y-10">
-
-      {/* Page Header */}
+      {/* Header */}
       <div>
         <h1 className="text-4xl font-semibold tracking-tight">Create Doctor</h1>
         <p className="text-muted-foreground mt-2">
-          Fill in the doctor's details and set up their available time slots.
+          Fill in the doctor's details and weekly availability.
         </p>
       </div>
 
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-12"
-        >
-          {/* =============== SECTION 1: Personal Details =============== */}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12">
+          {/* ================= PERSONAL INFO ================= */}
           <div className="space-y-6">
             <h2 className="text-xl font-medium">Personal Information</h2>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Doctor Name */}
+              {/* First Name */}
               <FormField
                 control={form.control}
-                name="name"
+                name="firstName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Doctor Name</FormLabel>
+                    <FormLabel>First Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="Dr. John Doe" {...field} />
+                      <Input placeholder="Anita" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Last Name */}
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Sharma" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -87,7 +124,7 @@ export function CreateDoctorForm() {
                   <FormItem>
                     <FormLabel>Specialization</FormLabel>
                     <FormControl>
-                      <Input placeholder="Cardiologist, Dermatologist..." {...field} />
+                      <Input placeholder="Cardiology" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -117,7 +154,7 @@ export function CreateDoctorForm() {
                   <FormItem>
                     <FormLabel>Phone</FormLabel>
                     <FormControl>
-                      <Input placeholder="+91 9876543210" {...field} />
+                      <Input placeholder="9876543210" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -132,7 +169,33 @@ export function CreateDoctorForm() {
                   <FormItem>
                     <FormLabel>Experience (Years)</FormLabel>
                     <FormControl>
-                      <Input type="number" min="1" {...field} value={field.value ?? ""} />
+                      <Input
+                        type="number"
+                        min={0}
+                        {...field}
+                        value={field.value ?? ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/*license number*/}
+              <FormField
+                control={form.control}
+                name="licenseNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>License Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="text"
+                        min={0}
+                        placeholder="Enter license number"
+                        {...field}
+                        value={field.value ?? ""}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -141,20 +204,49 @@ export function CreateDoctorForm() {
             </div>
           </div>
 
-          {/* =============== SECTION 2: Time Slots =============== */}
+          {/* ================= AVAILABILITY ================= */}
           <div className="space-y-6">
-            <h2 className="text-xl font-medium">Available Time Slots</h2>
+            <h2 className="text-xl font-medium">Weekly Availability</h2>
 
             <div className="space-y-4">
-              {fields.map((fieldItem, index) => (
+              {fields.map((item, index) => (
                 <div
-                  key={fieldItem.id}
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end"
+                  key={item.id}
+                  className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
                 >
+                  {/* Day */}
+                  <FormField
+                    control={form.control}
+                    name={`availability.${index}.day`}
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Day</FormLabel>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select day" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {DAYS.map((day) => (
+                              <SelectItem key={day} value={day}>
+                                {day}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
                   {/* Start Time */}
                   <FormField
                     control={form.control}
-                    name={`slots.${index}.start`}
+                    name={`availability.${index}.startTime`}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Start Time</FormLabel>
@@ -169,7 +261,7 @@ export function CreateDoctorForm() {
                   {/* End Time */}
                   <FormField
                     control={form.control}
-                    name={`slots.${index}.end`}
+                    name={`availability.${index}.endTime`}
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>End Time</FormLabel>
@@ -195,16 +287,22 @@ export function CreateDoctorForm() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => append({ start: "", end: "" })}
+                onClick={() =>
+                  append({
+                    day: "Monday",
+                    startTime: "",
+                    endTime: "",
+                  })
+                }
               >
-                + Add Time Slot
+                + Add Availability
               </Button>
             </div>
           </div>
 
           {/* Submit */}
           <div className="flex justify-end">
-            <Button type="submit" className="w-full md:w-auto">
+            <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
               Create Doctor
             </Button>
           </div>

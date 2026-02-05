@@ -1,14 +1,14 @@
 import ProtectedLayout from "@/components/layout/protectedLayout";
-import AdminsList from "@/components/superadmin/admins/adminslist";
+import DoctorsList from "@/components/superadmin/doctors/doctorslist";
 
 const Admins = () => {
   return (
     <ProtectedLayout
-      title="Admins"
-      subtitle="Manage all admins and their access."
+      title="Doctors"
+      subtitle="Manage all doctors and their access."
     >
       <div className="space-y-8">
-        <AdminsList />
+        <DoctorsList />
       </div>
     </ProtectedLayout>
   );

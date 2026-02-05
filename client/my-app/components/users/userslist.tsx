@@ -17,6 +17,7 @@ import { CheckCircle, ToggleLeft, User2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Badge } from "../ui/badge";
 import { toast } from "react-toastify";
+import { apiErrorHandler } from "@/lib/handlers";
 
 export default function UsersList() {
   const [usersList, setUsersList] = useState<User[]>([]);
@@ -29,6 +30,7 @@ export default function UsersList() {
       setUsersList(result?.data);
     } catch (error) {
       console.log(error);
+      apiErrorHandler(error);
     } finally {
       setIsLoading(false);
     }
@@ -48,6 +50,7 @@ export default function UsersList() {
       }
     } catch (error) {
       console.log(error);
+      apiErrorHandler(error);
     } finally {
       setIsLoading(false);
     }

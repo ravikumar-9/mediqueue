@@ -4,7 +4,9 @@ import { db } from "./config/db.js";
 import { sql } from "drizzle-orm";
 import authRoutes from "./routes/authRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
+import doctorRoutes from "./routes/doctorRoutes.js";
 import cors from "cors"
+import cookieParser from "cookie-parser"
 
 const app=express();
 
@@ -23,6 +25,8 @@ async function checkDBConnection() {
 checkDBConnection();
 
 app.use(express.json()); 
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: "http://localhost:3000", // your frontend URL
@@ -30,8 +34,10 @@ app.use(
   })
 );
 
+
 app.use("/auth",authRoutes);
-app.use("/",userRoutes);
+app.use("/api/users",userRoutes);
+app.use("/api/doctors",doctorRoutes);
 
 app.listen(process.env.PORT, () => {
   console.log(`🚀 Server running on port ${process.env.PORT}`)

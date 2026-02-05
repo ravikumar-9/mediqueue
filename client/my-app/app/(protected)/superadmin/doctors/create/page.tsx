@@ -1,5 +1,5 @@
 import ProtectedLayout from "@/components/layout/protectedLayout";
-import { CreateDoctorForm } from "@/components/superadmin/admins/createadmin";
+import { CreateDoctorForm } from "@/components/superadmin/doctors/createdoctor";
 
 const CreateDoctor = () => {
   return (

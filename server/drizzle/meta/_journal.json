@@ -22,6 +22,27 @@
       "when": 1770119250773,
       "tag": "0002_curly_stellaris",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1770206775240,
+      "tag": "0003_fresh_prism",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1770268708815,
+      "tag": "0004_naive_anthem",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1770308075443,
+      "tag": "0005_narrow_ken_ellis",
+      "breakpoints": true
     }
   ]
 }

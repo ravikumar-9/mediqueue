@@ -1,17 +1,32 @@
-import z from "zod";
+// schemas/createDoctor.schema.ts
+import { z } from "zod";
 
-const slots=z.object({
-    startTime:z.string().min(1,"Start time is required"),
-    endTime:z.string().min(1,"End time is required")
-})
-
-export const RegisterDoctor=z.object({
-    name:z.string().min(2,"Doctor name must be at least 3 characters"),
-    email:z.string().email("Invalid E-mail"),
-    phone:z.string().min(10).max(15),
-    specialization:z.string().min(2),
-    experience:z.number(),
-    slots:z.array(slots).min(1,"Atleast one slot is required")
+export const createDoctorSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  specialization: z.string().min(2),
+  licenseNumber: z.string().min(5),
+  experience: z.string().optional(),
+  phone: z.string().min(10).max(13),
+  availability: z
+    .array(
+      z
+        .object({
+          day: z.enum([
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ]),
+          startTime: z.string().regex(/^\d{2}:\d{2}$/),
+          endTime: z.string().regex(/^\d{2}:\d{2}$/),
+        })
+        .refine((v) => v.endTime > v.startTime, {
+          message: "The end time must be greater than start time",
+        })
+    )
+    .min(1),
 });
-
-export type RegisterDoctorType=z.infer<typeof RegisterDoctor>

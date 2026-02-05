@@ -2,11 +2,11 @@ import api from "@/api/axiosInstance";
 import { ApiResponse, User } from "../types/users.types";
 
 export const usersListService = async (): Promise<ApiResponse<User[]>> => {
-    const { data } = await api.post<ApiResponse<User[]>>("/users",{skip:0,limit:10});
+    const { data } = await api.post<ApiResponse<User[]>>("/api/users/",{skip:0,limit:10});
     return data;
 };
 
 export const activateUserService=async(id:string)=>{
-  const result=await api.put(`/users/update-status/${id}`);
+  const result=await api.put(`/api/users/update-status/${id}`);
   return result;
 }
