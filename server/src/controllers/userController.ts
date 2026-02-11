@@ -19,7 +19,9 @@ export const getAllUsers = async (req: Request, res: Response) => {
         isDeactivated: users?.isDeactivated,
         createdAt: users?.createdAt,
       })
-      .from(users).leftJoin(userProfiles,eq(users?.id,userProfiles?.userId)).where(and(ne(users?.role,"superadmin"),ne(users?.role,"doctor")))
+      .from(users)
+      .leftJoin(userProfiles, eq(users?.id, userProfiles?.userId))
+      .where(and(ne(users?.role, "superadmin"), ne(users?.role, "doctor")))
       .offset(skip ?? 0)
       .limit(limit ?? 10)
       .orderBy(desc(users?.createdAt));
@@ -29,6 +31,48 @@ export const getAllUsers = async (req: Request, res: Response) => {
       data: usersList,
       status: true,
     });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+//get user by id
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({
+        message: "An error occured while fetching the user details",
+        status: false,
+      });
+    }
+    const isUserExist = await db.select().from(users).where(eq(users?.id, id));
+    if (!isUserExist[0]) {
+      return res.status(400).json({ message: "User not found", status: false });
+    }
+
+    const result = await db
+      .select({
+        id: users?.id,
+        isDeactivated: users?.isDeactivated,
+        createdAt: users?.createdAt,
+        firstName: userProfiles?.firstName,
+        lastName: userProfiles?.lastName,
+        email: users?.email,
+        phone: userProfiles?.phone,
+        gender: userProfiles?.gender,
+      })
+      .from(users)
+      .innerJoin(userProfiles, eq(users?.id, userProfiles?.userId))
+      .where(eq(users?.id, id));
+    return res
+      .status(200)
+      .json({
+        message: "User details fetched successfully",
+        status: true,
+        data: result[0],
+      });
   } catch (error) {
     console.log(error);
     return res.status(500).json({ message: "Internal server error" });

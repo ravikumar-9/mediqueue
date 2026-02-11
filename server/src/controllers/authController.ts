@@ -92,6 +92,12 @@ export const Login = async (req: Request, res: Response) => {
           .json({ status: false, message: "Invalid credentials" });
       }
 
+      if (!isUserExist[0]){
+        return res
+        .status(400)
+        .json({ status: false, message: "Invalid credentials" });
+      }
+
       const token = generateAccessToken({
         id: isUserExist[0]?.id,
         role: isUserExist[0]?.role,
@@ -101,7 +107,7 @@ export const Login = async (req: Request, res: Response) => {
         httpOnly: true,
         secure: false,
         sameSite: "strict",
-        maxAge: 15 * 60 * 1000,
+        maxAge: 180 * 60 * 1000,
       });
 
       return res.status(200).json({

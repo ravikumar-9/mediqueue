@@ -18,7 +18,7 @@ import {
   getDoctorsListService,
   updateDoctorStatusService,
 } from "@/services/doctorservice";
-import { CheckCircle, CirclePlus, Eye, ToggleLeft, User } from "lucide-react";
+import { CheckCircle, CirclePlus, Edit, Eye, ToggleLeft, User } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -120,7 +120,8 @@ export default function DoctorsList() {
                         firstName: string;
                         lastName: string;
                         createdAt: string;
-                        isDeactivated: string;
+                        updatedAt:string;
+                        isDeactivated: boolean;
                         phone: string;
                         specialization: string;
                       },
@@ -158,7 +159,7 @@ export default function DoctorsList() {
 
                         <TableCell>
                           {doctor?.createdAt
-                            ? new Date(doctor?.createdAt).toLocaleString()
+                            ? new Date(doctor?.updatedAt).toLocaleString()
                             : "-"}
                         </TableCell>
 
@@ -177,6 +178,11 @@ export default function DoctorsList() {
                             >
                               <ToggleLeft />
                             </Button>
+                            <Link href={`/superadmin/doctors/edit/${doctor?.id}`}>
+                            <Button variant="outline">
+                             <Edit/>
+                            </Button>
+                            </Link>
                           </div>
                         </TableCell>
                       </TableRow>

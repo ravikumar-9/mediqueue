@@ -6,7 +6,7 @@ export const createDoctorSchema = z.object({
   firstName: z.string().min(1),
   lastName: z.string().min(1),
   specialization: z.string().min(2),
-  licenseNumber: z.string().min(5),
+  // licenseNumber: z.string().min(5),
   experience: z.string().optional(),
   phone: z.string().min(10).max(13),
   availability: z

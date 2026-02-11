@@ -1,0 +1,2 @@
+ALTER TABLE "doctor_profiles" ADD COLUMN "created_at" time with time zone DEFAULT now() NOT NULL;--> statement-breakpoint
+ALTER TABLE "doctor_profiles" ADD COLUMN "updated_at" time with time zone DEFAULT now() NOT NULL;

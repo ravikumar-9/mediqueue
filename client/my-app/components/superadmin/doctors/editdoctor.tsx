@@ -2,12 +2,11 @@
 
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import {
   createDoctorSchema,
   CreateDoctorFormValues,
+  Day,
 } from "@/schema/admin.schema";
-
 import {
   Form,
   FormControl,
@@ -16,7 +15,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,8 +25,32 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiErrorHandler } from "@/lib/handlers";
-import { createDoctorService } from "@/services/doctorservice";
+import {
+  createDoctorService,
+  getDoctorDetailsService,
+  updateDoctorService,
+} from "@/services/doctorservice";
 import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+
+type Availability = {
+  day: string;
+  startTime: string;
+  endTime: string;
+};
+
+type DoctorDetails = {
+  firstName: string;
+  lastName: string;
+  specialization: string;
+  experience?: number;
+  phone: string;
+  email: string;
+  createdAt: string;
+  isDeactivated: boolean;
+  availability: Availability[];
+};
 
 const DAYS = [
   "Monday",
@@ -40,7 +62,29 @@ const DAYS = [
   "Sunday",
 ] as const;
 
-export function CreateDoctorForm() {
+export function EditDoctorForm() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [doctor, setDoctor] = useState<DoctorDetails | null>(null);
+  const { id } = useParams<{ id: string }>();
+
+  useEffect(() => {
+    if (id) fetchDoctorDetails(id);
+  }, []);
+
+  const fetchDoctorDetails = async (id: string) => {
+    try {
+      setIsLoading(true);
+      const response = await getDoctorDetailsService(id);
+      if (response?.data?.status) {
+        setDoctor(response.data.data);
+      }
+    } catch (error) {
+      apiErrorHandler(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const form = useForm<CreateDoctorFormValues>({
     resolver: zodResolver(createDoctorSchema),
     defaultValues: {
@@ -49,9 +93,24 @@ export function CreateDoctorForm() {
       email: "",
       phone: "",
       specialization: "",
-      experience: "1",
-      availability: [{ day: "Monday", startTime: "", endTime: "" }],
+      experience: "0",
+      availability: [{day:"Monday",startTime:"",endTime:""}],
     },
+    values:doctor?{
+      firstName: doctor?.firstName,
+      lastName: doctor?.lastName,
+      email: doctor?.email,
+      phone: doctor?.phone,
+      specialization: doctor?.specialization,
+      experience: doctor?.experience?.toString() ?? "0",
+      availability: doctor?.availability?.map((avail) => ({
+        day: avail?.day as Day,
+        startTime: avail?.startTime,
+        endTime: avail?.endTime,
+      })),
+    }
+    :
+    undefined
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -61,7 +120,7 @@ export function CreateDoctorForm() {
 
   const onSubmit = async (values: CreateDoctorFormValues) => {
     try {
-      const response = await createDoctorService(values);
+      const response = await updateDoctorService(id,values);
       toast.success(response?.data?.message);
     } catch (error) {
       console.log(error);
@@ -69,11 +128,22 @@ export function CreateDoctorForm() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-20 text-muted-foreground">
+        Loading doctor details...
+      </div>
+    );
+  }
+  
+
   return (
     <div className="max-w-5xl mx-auto py-10 space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-4xl font-semibold tracking-tight">Create Doctor</h1>
+        <h1 className="text-4xl font-semibold tracking-tight">
+          Edit Doctor Details
+        </h1>
         <p className="text-muted-foreground mt-2">
           Fill in the doctor's details and weekly availability.
         </p>
@@ -184,14 +254,14 @@ export function CreateDoctorForm() {
             </div>
           </div>
 
-          {/* AVAILABILITY */}
+          {/*availability*/}
           <div className="space-y-6">
             <h2 className="text-xl font-medium">Weekly Availability</h2>
 
             <div className="space-y-4">
-              {fields.map((item, index) => (
+              {fields?.map((item, index) => (
                 <div
-                  key={item.id}
+                  key={item?.id}
                   className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end"
                 >
                   {/* Day */}
@@ -275,15 +345,19 @@ export function CreateDoctorForm() {
                   })
                 }
               >
-                + Add Availability
+                + Update Availability
               </Button>
             </div>
           </div>
 
           {/* Submit */}
           <div className="flex justify-end">
-            <Button type="submit" className="w-full md:w-auto" disabled={form.formState.isSubmitting}>
-              Create Doctor
+            <Button
+              type="submit"
+              className="w-full md:w-auto"
+              disabled={form.formState.isSubmitting}
+            >
+              Update Doctor Details
             </Button>
           </div>
         </form>

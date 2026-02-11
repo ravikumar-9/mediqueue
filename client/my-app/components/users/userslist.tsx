@@ -18,6 +18,7 @@ import { useEffect, useState } from "react";
 import { Badge } from "../ui/badge";
 import { toast } from "react-toastify";
 import { apiErrorHandler } from "@/lib/handlers";
+import Link from "next/link";
 
 export default function UsersList() {
   const [usersList, setUsersList] = useState<User[]>([]);
@@ -152,9 +153,11 @@ export default function UsersList() {
                         >
                           <ToggleLeft />
                         </Button>
+                        <Link href={`/users/${user?.id}`}>
                         <Button variant="outline" size="sm">
                           View
                         </Button>
+                        </Link>
                       </TableCell>
                     </TableRow>
                   ))

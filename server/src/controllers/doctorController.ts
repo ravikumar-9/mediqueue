@@ -7,8 +7,8 @@ import { doctorProfiles } from "../db/schema/doctorProfiles.js";
 import { doctorsAvailability } from "../db/schema/doctorsAvailability.js";
 import { generateRandomPassword } from "../utils/password.js";
 import { hashPassword } from "../utils/hash.js";
-// import { sendEmail } from "../utils/emails/sendEmail.js";
-// import { doctorCredentialsEmail } from "../utils/emails/doctorCredential.js";
+import { sendEmail } from "../utils/emails/sendEmail.js";
+import { doctorCredentialsEmail } from "../utils/emails/doctorCredential.js";
 
 export const createDoctor = async (req: Request, res: Response) => {
   try {
@@ -81,11 +81,11 @@ export const createDoctor = async (req: Request, res: Response) => {
       return newDoctor;
     });
 
-    // await sendEmail({
-    //   to: email,
-    //   subject: "Your MediQueue Doctor Account",
-    //   html: doctorCredentialsEmail({ email, password: hashedPassword }),
-    // });
+    await sendEmail({
+      to: email,
+      subject: "Your MediQueue Doctor Account",
+      html: doctorCredentialsEmail({ email, password: plainPassword }),
+    });
 
     return res.status(200).json({
       status: true,
@@ -103,14 +103,16 @@ export const doctorsList = async (req: Request, res: Response) => {
     const { skip, limit } = req.body;
     const result = await db
       .select({
-        id: doctorProfiles?.userId,
+        id: doctorProfiles?.id,
         email: users?.email,
         isDeactivated: users?.isDeactivated,
         createdAt: users?.createdAt,
+        updatedAt:users?.updatedAt,
         firstName: doctorProfiles?.firstName,
         lastName: doctorProfiles?.lastName,
         phone: doctorProfiles?.phone,
         specialization: doctorProfiles?.specialization,
+        experience:doctorProfiles?.experience
       })
       .from(users)
       .leftJoin(doctorProfiles, eq(users?.id, doctorProfiles?.userId))
@@ -144,11 +146,12 @@ export const getDoctorDetails = async (req: Request, res: Response) => {
 
     const doctor = await db
       .select({
-        doctorId: doctorProfiles?.id, 
+        doctorId: doctorProfiles?.id,
         firstName: doctorProfiles?.firstName,
         lastName: doctorProfiles?.lastName,
         experience: doctorProfiles?.experience,
         specialization: doctorProfiles?.specialization,
+        phone: doctorProfiles?.phone,
         email: users?.email,
         createdAt: users?.createdAt,
         isDeactivated: users?.isDeactivated,
@@ -188,6 +191,77 @@ export const getDoctorDetails = async (req: Request, res: Response) => {
   }
 };
 
+export const updateDoctorDetails = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const {
+      firstName,
+      lastName,
+      experience,
+      specialization,
+      phone,
+      availability,
+    } = req.body;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Doctor not found." });
+    }
+    const [isDoctorExist] = await db
+      .select()
+      .from(users)
+      .where(eq(users?.id, id));
+
+    if (!isDoctorExist) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Doctor details not found." });
+    }
+
+    const doctorResult = await db.transaction(async (tx) => {
+      const [doctorProfile] = await tx
+        .update(doctorProfiles)
+        ?.set({ firstName, lastName, phone, experience, specialization })
+        .where(eq(doctorProfiles?.userId, id))
+        .returning();
+      if (!doctorProfile) {
+        return;
+      }
+      await tx
+        .delete(doctorsAvailability)
+        .where(eq(doctorsAvailability.doctorId, doctorProfile.id));
+
+      await tx.insert(doctorsAvailability).values(
+        availability?.map(
+          (v: { day: string; startTime: string; endTime: string }) => ({
+            doctorId: doctorProfile.id,
+            day: v?.day,
+            startTime: v?.startTime,
+            endTime: v?.endTime,
+          })
+        ),
+      );
+
+      return doctorProfile;
+    });
+
+
+    if (!doctorResult) {
+      return res.status(400).json({
+        message: "An error occured while updating the doctor details.",
+      });
+    };
+
+    await db.update(users).set({updatedAt:new Date()}).where(eq(users?.id,doctorResult?.userId));
+
+    return res
+      .status(200)
+      .json({ status: true, message: "Doctor details updated successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: "Internal server error." });
+  }
+};
 
 export const updateDoctorStatus = async (req: Request, res: Response) => {
   try {

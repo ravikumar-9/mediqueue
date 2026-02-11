@@ -28,7 +28,6 @@ export const loginMiddleware = async (
       .where(eq(users?.id, payload?.id));
     if (isUserExist?.length > 0) {
       const user = isUserExist[0];
-      console.log(user)
       if (user?.isDeactivated) {
         return res
           .status(403)
@@ -43,7 +42,7 @@ export const loginMiddleware = async (
     if (err.name === "TokenExpiredError") {
       return res
         .status(401)
-        .json({ message: "Session Expired. Please login to" });
+        .json({ message: "Session Expired. Please login to continue" });
     }
 
     return res

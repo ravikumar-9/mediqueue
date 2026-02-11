@@ -1,24 +1,27 @@
 import { z } from "zod";
 
+export const DayEnum = z.enum([
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+]);
+
+export type Day = z.infer<typeof DayEnum>;
+
 export const availabilitySchema = z
   .object({
-    day: z.enum([
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-      "Sunday",
-    ]),
+    day: DayEnum,
 
-    startTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-      message: "Start time must be in HH:mm format",
-    }),
+    startTime: z.string(),
+    // .regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
+    //   message: "Start time must be in HH:mm format",
+    // }),
 
-    endTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-      message: "End time must be in HH:mm format",
-    }),
+    endTime: z.string(),
   })
   .refine((data) => data.startTime < data.endTime, {
     message: "End time must be after start time",
@@ -39,9 +42,9 @@ export const createDoctorSchema = z.object({
 
   specialization: z.string().min(2, "Specialization is required"),
 
-  experience: z.string().min(0, "Experience cannot be negative"),
+  experience: z.string(),
 
-  licenseNumber:z.string().min(3),
+  // licenseNumber:z.string().min(3),
 
   availability: z
     .array(availabilitySchema)

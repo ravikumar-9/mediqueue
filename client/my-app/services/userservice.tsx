@@ -6,6 +6,10 @@ export const usersListService = async (): Promise<ApiResponse<User[]>> => {
     return data;
 };
 
+export const getUserByIdService=async(id:string)=>{
+ return await api.get(`api/users/details/${id}`);
+}
+
 export const activateUserService=async(id:string)=>{
   const result=await api.put(`/api/users/update-status/${id}`);
   return result;

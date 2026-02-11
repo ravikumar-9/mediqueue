@@ -5,6 +5,7 @@ import { sql } from "drizzle-orm";
 import authRoutes from "./routes/authRoutes.js"
 import userRoutes from "./routes/userRoutes.js"
 import doctorRoutes from "./routes/doctorRoutes.js";
+import appointmentRoutes from "./routes/appointmentRoutes.js"
 import cors from "cors"
 import cookieParser from "cookie-parser"
 
@@ -29,7 +30,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // your frontend URL
+    origin: "http://localhost:3000",
     credentials: true,
   })
 );
@@ -38,7 +39,8 @@ app.use(
 app.use("/auth",authRoutes);
 app.use("/api/users",userRoutes);
 app.use("/api/doctors",doctorRoutes);
+app.use("/api/appointments",appointmentRoutes);
 
 app.listen(process.env.PORT, () => {
-  console.log(`🚀 Server running on port ${process.env.PORT}`)
+  console.log(`Server running on port ${process.env.PORT}`)
 })

@@ -16,5 +16,5 @@ export const users = pgTable("users", {
     .notNull(),
   isDeactivated: boolean("is_deactivated").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).$onUpdate(()=>new Date()).defaultNow(),
 });

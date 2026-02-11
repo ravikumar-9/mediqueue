@@ -26,6 +26,7 @@ import { loginService } from "@/services/authservice";
 import { toast } from "react-toastify";
 import { Loader, Lock, Mail } from "lucide-react";
 import InputWithIcon from "../ui/inputwithicon";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const form = useForm<loginSchemaType>({
@@ -36,12 +37,18 @@ export default function LoginPage() {
     },
   });
 
+  const router = useRouter();
+
   const onSubmit = async (values: loginSchemaType) => {
     try {
       const result = await loginService(values);
       if (result?.data?.status === true) {
+        const role=result?.data?.data?.role
+        localStorage.setItem("role", role);
+        if (role==="superadmin"){
+          router.replace("/superadmin/dashboard")
+        }
         toast.success(result?.data?.message);
-        localStorage.setItem("token",result?.data?.data?.token);
       } else {
         toast.error(result?.data?.message);
       }
@@ -75,7 +82,9 @@ export default function LoginPage() {
                 name="email"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium" required>Email Address</FormLabel>
+                    <FormLabel className="font-medium" required>
+                      Email Address
+                    </FormLabel>
                     <FormControl>
                       <InputWithIcon
                         Icon={Mail}
@@ -95,7 +104,9 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-medium" required>Password</FormLabel>
+                    <FormLabel className="font-medium" required>
+                      Password
+                    </FormLabel>
                     <FormControl>
                       <InputWithIcon
                         Icon={Lock}
