@@ -1,35 +1,33 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { lazy, Suspense } from "react";
+import "./App.css";
+import Navbar from "./components/layout/Navbar";
+import { Route, Routes } from "react-router-dom";
+import { CurrencyContextProvider } from "./context/currencyContext";
+
+const LandingPage = lazy(() => import("./pages/landing"));
+const MarketsPage = lazy(() => import("./pages/markets"));
+const CoinDetailsPage = lazy(() => import("./pages/coinDetails"));
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <CurrencyContextProvider>
+      <div className="flex flex-col min-h-screen w-full bg-slate-950 text-white">
+        <Navbar />
+        <Suspense
+          fallback={<div className="text-center py-10">Loading...</div>}
+        >
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/markets" element={<MarketsPage />} />
+            <Route path="/coins/:coinId" element={<CoinDetailsPage />} />
+          </Routes>
+        </Suspense>
+        <footer className="text-center py-4 text-sm text-slate-500 border-t border-slate-800">
+          © 2026 Crypto Tracker
+        </footer>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </CurrencyContextProvider>
+  );
 }
 
-export default App
+export default App;
